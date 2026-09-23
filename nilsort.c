@@ -3,7 +3,7 @@
  *
  * MIT License
  *
- * Copyright (c) 2026 <your name here>
+ * Copyright (c) 2026 Daniel Lee Witzel
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
