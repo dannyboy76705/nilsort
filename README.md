@@ -55,6 +55,16 @@ find /some/dir -type f | nilsort [options] -
 
 Threading only affects the hashing phase's wall-clock time — each file's digest is written to a fixed array slot by index, independent of which thread computed it or in what order, so output is bit-for-bit identical regardless of `-t`. (Notably, `binsort` documents the opposite behavior for its own optimization stage.)
 
+**Helper Tool**
+squashfs-tools-ng supports sortlist with 64-bit number index so practically infinite compared to squashfs tools. The python 3 script takes a generated sort list and makes a gensquashfs compatible list. 
+usage goes as so:
+usage: ../../my_tools/nilsort/tar-to-gensquashfs-list.py SORTLIST [PACK_DIR] > SORTFILE
+       SORTLIST: one path per line, in the order to archive
+       PACK_DIR: the prefix that will become --pack-dir's root (stripped
+                 from every line, matching what --pack-dir strips); omit
+                 only if SORTLIST's paths are already pack-dir-relative
+       SORTFILE: written to stdout, for gensquashfs --sort-file
+
 ## Performance notes
 
 Real numbers from testing, for a sense of scale:
@@ -112,7 +122,7 @@ A few things worth knowing if you're picking this up again, extending it, or bui
 - **Greedy nearest-neighbor + 2-opt optimizes pairwise similarity, not path smoothness.** This is likely part of why even a 96%-accurate similarity signal (nilsimsa on raw YUV) still lost to true order: the algorithm can and does take short "jumps" whenever a slightly-higher-scoring non-adjacent candidate exists, even when the true-sequence neighbor was already a very good match. An ordering algorithm that penalized non-local jumps, or that had access to a "prefer true-sequence order when the similarity signal doesn't clearly disagree" heuristic, might close more of the remaining gap to chronological order than pure greedy-similarity does.
 - **The EBML parser (`-m`) only reads Cluster elements at the Segment's top level** — it doesn't descend into nested structures like `Tags` with embedded attachments, and treats "unknown size" elements (the EBML streaming convention) as running to the end of the enclosing element rather than fully implementing EBML's streaming semantics. Fine for finalized single-frame/single-GOP files from a known pipeline; would need hardening for arbitrary Matroska files in the wild.
 - **Every performance and correctness claim in this file was empirically measured against real or controlled-synthetic data during development**, not just reasoned about — see the git history / prior conversation for the actual benchmark harnesses (POPCNT comparison speed, MinHash monotonicity on controlled content-overlap, hashing throughput, thread-order determinism, EBML parsing against real ffmpeg-generated files). Worth maintaining that standard for any new claims rather than trusting intuition alone — several of the findings above (MinHash losing badly on raw YUV, default beating everything) were genuinely counter to the initial hypothesis going in.
-
+  
 ## License
 
 MIT. See the header comment in `nilsort.c`.
